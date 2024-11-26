@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .dashboard-header {
+      background-color: #559ae0;
+      padding: 50px;
+    }
+    .sidebar {
+      background-color: #343a40;
+      color: rgb(255, 255, 255);
+      height: 20vh;
+      padding-top: 20px;
+    }
+    .sidebar a {
+      color: rgb(255, 255, 255);
+      text-decoration: none;
+    }
+    .content-section {
+      margin-left: 220px;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Admin Dashboard Header -->
+  <div class="dashboard-header">
+    <div class="container">
+      <h2>Admin Dashboard</h2>
+      <p>Manage projects and mentors</p>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3 sidebar">
+      <ul class="nav flex-column">
+        <li class="nav-item">
+          <a class="nav-link active" href="#manage-projects">Manage Projects</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#manage-mentors">Manage Mentors</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Content Section -->
+    <div class="col-md-9 content-section">
+      <!-- Manage Projects -->
+      <div id="manage-projects">
+        <h3>Project Topics</h3>
+        <form>
+          <div class="mb-3">
+            <label for="project-topic" class="form-label">Project Topic</label>
+            <input type="text" class="form-control" id="project-topic" placeholder="Enter project topic">
+          </div>
+          <button type="submit" class="btn btn-primary">Add Project</button>
+        </form>
+      </div>
+
+      <!-- Manage Mentors -->
+      <div id="manage-mentors" class="mt-5">
+        <h3>Mentor Management</h3>
+        <form>
+          <div class="mb-3">
+            <label for="mentor-name" class="form-label">Mentor Name</label>
+            <input type="text" class="form-control" id="mentor-name" placeholder="Enter mentor name">
+          </div>
+          <div class="mb-3">
+            <label for="mentor-email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="mentor-email" placeholder="Enter mentor email">
+          </div>
+          <div class="mb-3">
+            <label for="mentor-phone" class="form-label">Phone Number</label>
+            <input type="text" class="form-control" id="mentor-phone" placeholder="Enter mentor phone number">
+          </div>
+          <div class="mb-3">
+            <label for="mentor-password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="mentor-password" placeholder="Enter mentor password">
+          </div>
+          <div class="mb-3">
+            <label for="project-topic" class="form-label">Project Topic</label>
+            <select class="form-select" id="mentor-project-topic">
+              <option selected>Select Project Topic</option>
+              <option value="1">Project 1</option>
+              <option value="2">Project 2</option>
+              <option value="3">Project 3</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Add Mentor</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS (Optional) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,340 @@
+ a full MERN (MongoDB, Express, React, Node.js) stack application for the Admin Dashboard with features like managing project topics and mentors involves several parts. Below is a breakdown of each section with code snippets for each step.
+
+Steps involved:
+Frontend (React)
+
+Admin Dashboard with forms to add, edit, and delete project topics and mentors.
+Backend (Node.js with Express)
+
+API routes to handle operations such as adding, updating, and deleting mentors and project topics.
+Database (MongoDB)
+
+Collections for storing data about project topics and mentors.
+Project Structure:
+bash
+Copy code
+MERN-Admin-Dashboard/
+│
+├── backend/              # Backend code (Node.js, Express)
+│   ├── models/           # MongoDB models
+│   ├── routes/           # API routes
+│   ├── server.js         # Server setup and connection
+│   └── config/           # Configuration (DB connection)
+│
+├── frontend/             # Frontend code (React)
+│   ├── src/
+│   │   ├── components/   # React components for forms
+│   │   ├── App.js        # Main component
+│   │   └── index.js      # React entry point
+│
+└── package.json          # Dependencies for both frontend and backend
+1. Backend Setup (Node.js + Express + MongoDB)
+a. Install dependencies:
+First, install the necessary dependencies:
+bash
+Copy code
+npm init -y
+npm install express mongoose cors body-parser bcryptjs jsonwebtoken
+b. server.js:
+The entry point for the backend server.
+
+js
+Copy code
+// backend/server.js
+
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
+const mentorRoutes = require("./routes/mentorRoutes");
+const projectRoutes = require("./routes/projectRoutes");
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(bodyParser.json());
+
+// MongoDB connection
+mongoose.connect("mongodb://localhost:27017/mern_admin_dashboard", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log("MongoDB connected!");
+}).catch(err => {
+  console.error("MongoDB connection failed:", err);
+});
+
+// API routes
+app.use("/api/mentors", mentorRoutes);
+app.use("/api/projects", projectRoutes);
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+c. Models (Mentor and Project Topics):
+Mentor Model (backend/models/Mentor.js):
+
+js
+Copy code
+const mongoose = require("mongoose");
+
+const mentorSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  phone: { type: String, required: true },
+  password: { type: String, required: true },
+  projectTopic: { type: mongoose.Schema.Types.ObjectId, ref: "Project" },
+});
+
+module.exports = mongoose.model("Mentor", mentorSchema);
+Project Model (backend/models/Project.js):
+
+js
+Copy code
+const mongoose = require("mongoose");
+
+const projectSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+});
+
+module.exports = mongoose.model("Project", projectSchema);
+d. Routes:
+Mentor Routes (backend/routes/mentorRoutes.js):
+
+js
+Copy code
+const express = require("express");
+const router = express.Router();
+const Mentor = require("../models/Mentor");
+const Project = require("../models/Project");
+
+// Add new mentor
+router.post("/add", async (req, res) => {
+  try {
+    const { name, email, phone, password, projectTopic } = req.body;
+    const mentor = new Mentor({ name, email, phone, password, projectTopic });
+    await mentor.save();
+    res.status(201).json(mentor);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update mentor
+router.put("/update/:id", async (req, res) => {
+  try {
+    const mentor = await Mentor.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(mentor);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Delete mentor
+router.delete("/delete/:id", async (req, res) => {
+  try {
+    await Mentor.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Mentor deleted" });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+module.exports = router;
+Project Routes (backend/routes/projectRoutes.js):
+
+js
+Copy code
+const express = require("express");
+const router = express.Router();
+const Project = require("../models/Project");
+
+// Add new project
+router.post("/add", async (req, res) => {
+  try {
+    const { name } = req.body;
+    const project = new Project({ name });
+    await project.save();
+    res.status(201).json(project);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Get all projects
+router.get("/", async (req, res) => {
+  try {
+    const projects = await Project.find();
+    res.json(projects);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+module.exports = router;
+2. Frontend Setup (React)
+a. Install React and Axios:
+First, install React and Axios for making HTTP requests:
+
+bash
+Copy code
+npx create-react-app frontend
+cd frontend
+npm install axios react-router-dom
+b. App.js:
+Create the main App.js file for the admin dashboard.
+
+js
+Copy code
+// frontend/src/App.js
+
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import ProjectForm from "./components/ProjectForm";
+import MentorForm from "./components/MentorForm";
+
+const App = () => {
+  const [projects, setProjects] = useState([]);
+  const [mentors, setMentors] = useState([]);
+
+  // Fetch projects and mentors
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const res = await axios.get("http://localhost:5000/api/projects");
+      setProjects(res.data);
+    };
+
+    const fetchMentors = async () => {
+      const res = await axios.get("http://localhost:5000/api/mentors");
+      setMentors(res.data);
+    };
+
+    fetchProjects();
+    fetchMentors();
+  }, []);
+
+  return (
+    <div className="container">
+      <h2>Admin Dashboard</h2>
+
+      <h3>Project Topics</h3>
+      <ProjectForm projects={projects} setProjects={setProjects} />
+
+      <h3>Mentor Management</h3>
+      <MentorForm mentors={mentors} setMentors={setMentors} projects={projects} />
+    </div>
+  );
+};
+
+export default App;
+c. ProjectForm Component:
+js
+Copy code
+// frontend/src/components/ProjectForm.js
+
+import React, { useState } from "react";
+import axios from "axios";
+
+const ProjectForm = ({ projects, setProjects }) => {
+  const [projectName, setProjectName] = useState("");
+
+  const handleAddProject = async (e) => {
+    e.preventDefault();
+    const res = await axios.post("http://localhost:5000/api/projects/add", { name: projectName });
+    setProjects([...projects, res.data]);
+  };
+
+  return (
+    <form onSubmit={handleAddProject}>
+      <input 
+        type="text" 
+        value={projectName} 
+        onChange={(e) => setProjectName(e.target.value)} 
+        placeholder="Enter project name" 
+        required 
+      />
+      <button type="submit">Add Project</button>
+    </form>
+  );
+};
+
+export default ProjectForm;
+d. MentorForm Component:
+js
+Copy code
+// frontend/src/components/MentorForm.js
+
+import React, { useState } from "react";
+import axios from "axios";
+
+const MentorForm = ({ mentors, setMentors, projects }) => {
+  const [mentor, setMentor] = useState({ name: "", email: "", phone: "", password: "", projectTopic: "" });
+
+  const handleAddMentor = async (e) => {
+    e.preventDefault();
+    const res = await axios.post("http://localhost:5000/api/mentors/add", mentor);
+    setMentors([...mentors, res.data]);
+  };
+
+  return (
+    <form onSubmit={handleAddMentor}>
+      <input 
+        type="text" 
+        placeholder="Mentor Name" 
+        value={mentor.name} 
+        onChange={(e) => setMentor({ ...mentor, name: e.target.value })} 
+        required
+      />
+      <input 
+        type="email" 
+        placeholder="Mentor Email" 
+        value={mentor.email} 
+        onChange={(e) => setMentor({ ...mentor, email: e.target.value })} 
+        required
+      />
+      <input 
+        type="text" 
+        placeholder="Mentor Phone" 
+        value={mentor.phone} 
+        onChange={(e) => setMentor({ ...mentor, phone: e.target.value })} 
+        required
+      />
+      <input 
+        type="password" 
+        placeholder="Mentor Password" 
+        value={mentor.password} 
+        onChange={(e) => setMentor({ ...mentor, password: e.target.value })} 
+        required
+      />
+      <select 
+        value={mentor.projectTopic} 
+        onChange={(e) => setMentor({ ...mentor, projectTopic: e.target.value })}>
+        <option value="">Select Project Topic</option>
+        {projects.map(project => (
+          <option key={project._id} value={project._id}>{project.name}</option>
+        ))}
+      </select>
+      <button type="submit">Add Mentor</button>
+    </form>
+  );
+};
+
+export default MentorForm;
+3. Run the application
+Backend:
+
+Go to the backend folder and run the server:
+bash
+Copy code
+node server.js
+Frontend:
+
+Go to the frontend folder and start the React application:
+bash
+Copy code
+npm start
+This is a basic MERN stack application for managing project topics and mentors. It includes the backend for handling database operations (MongoDB), a REST API for CRUD operations, and a React frontend that interacts with the backend to display forms and manage data. You can extend this by adding features like authentication, validation, and a UI for updating and deleting mentors and topics.
+
+
+
