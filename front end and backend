@@ -1,0 +1,457 @@
+Frontend Setup (React)
+Set up the frontend:
+bash
+Copy code
+npx create-react-app frontend
+cd frontend
+npm install axios react-router-dom
+Folder Structure for Frontend:
+bash
+Copy code
+frontend/
+  ├── components/
+  │   ├── AdminDashboard.js
+  │   ├── Login.js
+  │   ├── MentorForm.js
+  │   └── ProjectTopicForm.js
+  ├── App.js
+  ├── index.js
+3. Components:
+Login Component (Login.js):
+js
+Copy code
+import { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+function Login() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      const res = await axios.post('http://localhost:5000/api/admin/login', { username, password });
+      localStorage.setItem('token', res.data.token);
+      navigate('/admin-dashboard');
+    } catch (err) {
+      alert('Invalid credentials');
+    }
+  };
+
+  return (
+    <div>
+      <h2>Login</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit">Login</button>
+      </form>
+    </div>
+  );
+}
+
+export default Login;
+Admin Dashboard (AdminDashboard.js):
+js
+Copy code
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+function AdminDashboard() {
+  const [projectTopics, setProjectTopics] = useState([]);
+  const [mentors, setMentors] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+      }
+
+      try {
+        const topics = await axios.get('http://localhost:5000/api/projecttopics', {
+          headers: { 'x-auth-token': token }
+        });
+        setProjectTopics(topics.data);
+        
+        const mentorsRes = await axios.get('http://localhost:5000/api/mentors', {
+          headers: { 'x-auth-token': token }
+        });
+        setMentors(mentorsRes.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchData();
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
+
+  return (
+    <div>
+      <h2>Admin Dashboard</h2>
+      <button onClick={handleLogout}>Logout</button>
+      <div>
+        <h3>Project Topics</h3>
+        {projectTopics.map((topic) => (
+          <div key={topic._id}>{topic.name}</div>
+        ))}
+      </div>
+      <div>
+        <h3>Mentors</h3>
+        {mentors.map((mentor) => (
+          <div key={mentor._id}>
+            <p>{mentor.name}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default AdminDashboard;
+MentorForm Component (MentorForm.js):
+js
+Copy code
+import { useState } from 'react';
+import axios from 'axios';
+
+function MentorForm() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [projectTopic, setProjectTopic] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const newMentor = { name, email, phone, password, projectTopic };
+    const token = localStorage.getItem('token');
+
+    try {
+      await axios.post('http://localhost:5000/api/mentors', newMentor, {
+        headers: { 'x-auth-token': token }
+      });
+      alert('Mentor added successfully');
+    } catch (err) {
+      alert('Error adding mentor');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        placeholder="Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <input
+        type="email"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Phone"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+      />
+      <input
+        type="password"
+        placeholder="Password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <input
+        type="text"
+        placeholder="Project Topic"
+        value={projectTopic}
+        onChange={(e) => setProjectTopic(e.target.value)}
+      />
+      <button type="submit">Add Mentor</button>
+    </form>
+  );
+}
+
+export default MentorForm;
+Run the Backend and Frontend
+Run the backend:
+bash
+Copy code
+cd backend
+node server.js
+Run the frontend:
+bash
+Copy code
+cd frontend
+npm start
+Now, you have a simple MERN stack application with:
+
+Admin login and dashboard.
+Admin functionality to add, update, and delete project topics and mentors.
+Logout feature
+
+
+
+**************************************************************************
+**************************************************************************
+**************************************************************************
+
+1. Set Up the Backend (Node.js + Express + MongoDB)
+Backend Setup:
+Create the project folder:
+bash
+Copy code
+mkdir my-mern-app
+cd my-mern-app
+Initialize the backend with npm:
+bash
+Copy code
+mkdir backend
+cd backend
+npm init -y
+Install the required backend packages:
+bash
+Copy code
+npm install express mongoose bcryptjs jsonwebtoken cors dotenv
+Folder Structure for Backend:
+bash
+Copy code
+backend/
+  ├── models/
+  │   ├── ProjectTopic.js
+  │   ├── Mentor.js
+  │   └── Admin.js
+  ├── routes/
+  │   ├── adminRoutes.js
+  │   ├── mentorRoutes.js
+  │   └── projectTopicRoutes.js
+  ├── controllers/
+  │   ├── adminController.js
+  │   ├── mentorController.js
+  │   └── projectTopicController.js
+  ├── config/
+  │   └── db.js
+  ├── .env
+  ├── server.js
+1. db.js (Database connection):
+js
+Copy code
+const mongoose = require('mongoose');
+
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.log(err));
+2. Admin Model (models/Admin.js):
+js
+Copy code
+const mongoose = require('mongoose');
+
+const AdminSchema = new mongoose.Schema({
+  username: { type: String, required: true },
+  password: { type: String, required: true }
+});
+
+module.exports = mongoose.model('Admin', AdminSchema);
+3. ProjectTopic Model (models/ProjectTopic.js):
+js
+Copy code
+const mongoose = require('mongoose');
+
+const ProjectTopicSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+});
+
+module.exports = mongoose.model('ProjectTopic', ProjectTopicSchema);
+4. Mentor Model (models/Mentor.js):
+js
+Copy code
+const mongoose = require('mongoose');
+
+const MentorSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  phone: { type: String, required: true },
+  password: { type: String, required: true },
+  projectTopic: { type: mongoose.Schema.Types.ObjectId, ref: 'ProjectTopic' }
+});
+
+module.exports = mongoose.model('Mentor', MentorSchema);
+5. Authentication Middleware (middleware/auth.js):
+js
+Copy code
+const jwt = require('jsonwebtoken');
+
+module.exports = (req, res, next) => {
+  const token = req.header('x-auth-token');
+  if (!token) return res.status(401).json({ msg: 'No token, authorization denied' });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.admin = decoded.admin;
+    next();
+  } catch (err) {
+    res.status(401).json({ msg: 'Token is not valid' });
+  }
+};
+6. Controllers (controllers/):
+Admin Controller (adminController.js):
+js
+Copy code
+const Admin = require('../models/Admin');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+exports.login = async (req, res) => {
+  const { username, password } = req.body;
+  const admin = await Admin.findOne({ username });
+
+  if (!admin) return res.status(400).json({ msg: 'Invalid credentials' });
+
+  const isMatch = await bcrypt.compare(password, admin.password);
+  if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
+
+  const token = jwt.sign({ admin: { id: admin.id } }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+  res.json({ token });
+};
+ProjectTopic Controller (projectTopicController.js):
+js
+Copy code
+const ProjectTopic = require('../models/ProjectTopic');
+
+exports.getAllProjectTopics = async (req, res) => {
+  const topics = await ProjectTopic.find();
+  res.json(topics);
+};
+
+exports.addProjectTopic = async (req, res) => {
+  const { name } = req.body;
+  const newTopic = new ProjectTopic({ name });
+  await newTopic.save();
+  res.status(201).json(newTopic);
+};
+
+exports.updateProjectTopic = async (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  const updatedTopic = await ProjectTopic.findByIdAndUpdate(id, { name }, { new: true });
+  res.json(updatedTopic);
+};
+
+exports.deleteProjectTopic = async (req, res) => {
+  const { id } = req.params;
+  await ProjectTopic.findByIdAndDelete(id);
+  res.json({ msg: 'Topic deleted' });
+};
+Mentor Controller (mentorController.js):
+js
+Copy code
+const Mentor = require('../models/Mentor');
+
+exports.addMentor = async (req, res) => {
+  const { name, email, phone, password, projectTopic } = req.body;
+  const newMentor = new Mentor({ name, email, phone, password, projectTopic });
+  await newMentor.save();
+  res.status(201).json(newMentor);
+};
+
+exports.updateMentor = async (req, res) => {
+  const { id } = req.params;
+  const { name, email, phone, password, projectTopic } = req.body;
+  
+  const updatedMentor = await Mentor.findByIdAndUpdate(id, { name, email, phone, password, projectTopic }, { new: true });
+  res.json(updatedMentor);
+};
+
+exports.deleteMentor = async (req, res) => {
+  const { id } = req.params;
+  await Mentor.findByIdAndDelete(id);
+  res.json({ msg: 'Mentor deleted' });
+};
+7. Routes (routes/):
+Admin Routes (adminRoutes.js):
+js
+Copy code
+const express = require('express');
+const router = express.Router();
+const adminController = require('../controllers/adminController');
+
+router.post('/login', adminController.login);
+
+module.exports = router;
+ProjectTopic Routes (projectTopicRoutes.js):
+js
+Copy code
+const express = require('express');
+const router = express.Router();
+const projectTopicController = require('../controllers/projectTopicController');
+const auth = require('../middleware/auth');
+
+router.get('/', auth, projectTopicController.getAllProjectTopics);
+router.post('/', auth, projectTopicController.addProjectTopic);
+router.put('/:id', auth, projectTopicController.updateProjectTopic);
+router.delete('/:id', auth, projectTopicController.deleteProjectTopic);
+
+module.exports = router;
+Mentor Routes (mentorRoutes.js):
+js
+Copy code
+const express = require('express');
+const router = express.Router();
+const mentorController = require('../controllers/mentorController');
+const auth = require('../middleware/auth');
+
+router.post('/', auth, mentorController.addMentor);
+router.put('/:id', auth, mentorController.updateMentor);
+router.delete('/:id', auth, mentorController.deleteMentor);
+
+module.exports = router;
+8. Server Setup (server.js):
+js
+Copy code
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+dotenv.config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+require('./config/db');
+
+// Routes
+app.use('/api/admin', require('./routes/adminRoutes'));
+app.use('/api/projecttopics', require('./routes/projectTopicRoutes'));
+app.use('/api/mentors', require('./routes/mentorRoutes'));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+9. .env file:
+bash
+Copy code
+MONGO_URI=mongodb://localhost:27017/mern_admin_dashboard
+JWT_SECRET=your_secret_key
